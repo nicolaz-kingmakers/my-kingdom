@@ -265,7 +265,17 @@ export default function KingdomHomeScreen() {
             <button onClick={() => setShowThemePicker(true)} style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.8)", fontSize: 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               🎨
             </button>
-            <img src={user.avatar} alt={user.displayName} width={46} height={46} style={{ borderRadius: "50%", border: "2px solid rgba(255,255,255,0.25)", background: "rgba(0,0,0,0.3)" }} />
+            <div style={{
+              width: 46, height: 46, borderRadius: "50%", flexShrink: 0,
+              background: "linear-gradient(135deg, #1a1200, #3d2e00)",
+              border: "2px solid #F0B429",
+              boxShadow: "0 0 12px rgba(240,180,41,0.4)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 18, fontWeight: 900, color: "#F0B429",
+              letterSpacing: -0.5,
+            }}>
+              {user.displayName.charAt(0).toUpperCase()}
+            </div>
           </div>
         </div>
 
