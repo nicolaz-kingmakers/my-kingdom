@@ -6,7 +6,7 @@ import type { PaymentInstrument } from "../data/mockData";
 import StepPickGames from "../screens/onboarding/StepPickGames";
 import StepPickTheme from "../screens/onboarding/StepPickTheme";
 import StepSetName from "../screens/onboarding/StepSetName";
-import StepFundVault from "../screens/onboarding/StepFundVault";
+import StepFundVault, { type KeepMeReadyConfig } from "../screens/onboarding/StepFundVault";
 import StepComplete from "../screens/onboarding/StepComplete";
 
 const TOTAL_STEPS = 4; // Complete screen is not a numbered step
@@ -23,7 +23,8 @@ export default function OnboardingFlow() {
     MOCK_KINGDOM.pinnedGames.map((g) => g.id)
   );
   const [theme, setTheme] = useState("dark-gold");
-  const [instrument, setInstrument] = useState<PaymentInstrument>("INSTANT_EFT");
+  const [instrument, setInstrument] = useState<PaymentInstrument>("SAVED_CARD");
+  const [keepMeReady, setKeepMeReady] = useState<KeepMeReadyConfig>({ enabled: false, threshold: 50, amount: 180 });
 
   const canAdvance = () => {
     if (step === 0) return selectedGames.length >= 1;
@@ -37,7 +38,7 @@ export default function OnboardingFlow() {
     if (step < TOTAL_STEPS - 1) {
       setStep((s) => s + 1);
     } else {
-      completeOnboarding(name.trim(), selectedGames, theme, instrument);
+      completeOnboarding(name.trim(), selectedGames, theme, instrument, keepMeReady);
       setStep(TOTAL_STEPS); // completion screen
     }
   };
@@ -70,7 +71,12 @@ export default function OnboardingFlow() {
 
         {/* ── Step 3: Fund vault ── */}
         {step === 3 && (
-          <StepFundVault selected={instrument} onChange={setInstrument} />
+          <StepFundVault
+            selected={instrument}
+            onChange={setInstrument}
+            keepMeReady={keepMeReady}
+            onKeepMeReadyChange={setKeepMeReady}
+          />
         )}
 
       </div>

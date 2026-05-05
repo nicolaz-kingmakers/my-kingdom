@@ -3,9 +3,10 @@ import { useState } from "react";
 import { useApp } from "../../context/AppContext";
 
 const INSTRUMENT_LABEL: Record<string, string> = {
-  INSTANT_EFT: "Instant EFT (Ozow)",
-  SAVED_CARD: "Saved Card",
-  VOUCHER: "1Voucher",
+  INSTANT_EFT:  "Instant EFT (Ozow)",
+  SAVED_CARD:   "Saved Card",
+  MOBILE_MONEY: "Mobile Money (MTN MoMo)",
+  VOUCHER:      "1Voucher",
 };
 
 export default function TopUpConfirmScreen() {

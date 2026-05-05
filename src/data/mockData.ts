@@ -4,7 +4,7 @@
 
 export type WalletState = "HEALTHY" | "LOW" | "EMPTY";
 export type NudgeTone = "casual" | "competitive" | "analytical";
-export type PaymentInstrument = "INSTANT_EFT" | "SAVED_CARD" | "VOUCHER";
+export type PaymentInstrument = "INSTANT_EFT" | "SAVED_CARD" | "VOUCHER" | "MOBILE_MONEY";
 export type NudgeTrigger =
   | "LOW_BALANCE_BEFORE_SESSION"
   | "SESSION_REMINDER"

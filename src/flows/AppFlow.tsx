@@ -1,9 +1,11 @@
 // Root routing shell — owned by Abioye.
 // All screen navigation lives here. Nico and Cris never need to touch this.
 
+import React from "react";
 import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useNudgeEngine } from "../ai/useNudgeEngine";
+import { THEME_CATALOG, DEFAULT_THEME } from "../data/themes";
 
 import BeforeScreen from "../screens/BeforeScreen";
 import KingdomHomeScreen from "../screens/KingdomHomeScreen";
@@ -11,6 +13,18 @@ import OnboardingFlow from "./OnboardingFlow";
 import TopUpConfirmScreen from "../screens/topup/TopUpConfirmScreen";
 import TopUpSuccessScreen from "../screens/topup/TopUpSuccessScreen";
 import Toast from "../components/Toast";
+
+// Injects theme CSS variables at the root so every var(--brand) etc. across
+// the whole app automatically reflects the active theme.
+function ThemeWrapper({ children }: { children: React.ReactNode }) {
+  const { kingdom } = useApp();
+  const theme = THEME_CATALOG[kingdom.theme] ?? DEFAULT_THEME;
+  return (
+    <div style={{ ...theme.vars as React.CSSProperties, display: "contents" }}>
+      {children}
+    </div>
+  );
+}
 
 function Routes_() {
   const { isOnboarded } = useApp();
@@ -45,8 +59,10 @@ function Routes_() {
 export default function AppFlow() {
   return (
     <HashRouter>
-      <Routes_ />
-      <Toast />
+      <ThemeWrapper>
+        <Routes_ />
+        <Toast />
+      </ThemeWrapper>
     </HashRouter>
   );
 }

@@ -17,7 +17,7 @@ interface AppState {
 }
 
 interface AppActions {
-  completeOnboarding: (name: string, pinnedGameIds: string[], theme: string, instrument: PaymentInstrument) => void;
+  completeOnboarding: (name: string, pinnedGameIds: string[], theme: string, instrument: PaymentInstrument, autoTopUp: { enabled: boolean; threshold: number; amount: number }) => void;
   topUp: (amount: number) => void;
   spendBalance: (amount: number) => void;
   setAutoTopUp: (enabled: boolean, threshold: number, amount: number) => void;
@@ -48,7 +48,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const prevWalletState = useRef<WalletState>(MOCK_WALLET.state);
 
   const completeOnboarding = useCallback(
-    (name: string, pinnedGameIds: string[], theme: string, instrument: PaymentInstrument) => {
+    (
+      name: string,
+      pinnedGameIds: string[],
+      theme: string,
+      instrument: PaymentInstrument,
+      autoTopUp: { enabled: boolean; threshold: number; amount: number },
+    ) => {
       setUser((u) => ({ ...u, displayName: name, preferredTheme: theme, paymentInstrument: instrument }));
       setKingdom((k) => ({
         ...k,
@@ -56,6 +62,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         pinnedGames: k.pinnedGames
           .filter((g) => pinnedGameIds.includes(g.id))
           .map((g, i) => ({ ...g, pinOrder: i + 1 })),
+      }));
+      setWallet((w) => ({
+        ...w,
+        autoTopUp: {
+          enabled: autoTopUp.enabled,
+          triggerThreshold: autoTopUp.threshold,
+          topUpAmount: autoTopUp.amount,
+        },
       }));
       setIsOnboarded(true);
     },
