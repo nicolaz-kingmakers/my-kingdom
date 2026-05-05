@@ -1,0 +1,105 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useApp } from "../context/AppContext";
+import { MOCK_KINGDOM } from "../data/mockData";
+import StepPickGames from "../screens/onboarding/StepPickGames";
+import StepPickTheme from "../screens/onboarding/StepPickTheme";
+import StepSetName from "../screens/onboarding/StepSetName";
+import StepComplete from "../screens/onboarding/StepComplete";
+
+const TOTAL_STEPS = 3; // Complete screen is not a numbered step
+
+export default function OnboardingFlow() {
+  const navigate = useNavigate();
+  const { completeOnboarding } = useApp();
+
+  const [step, setStep] = useState(0);
+  const [name, setName] = useState("Nico");
+  const [selectedGames, setSelectedGames] = useState<string[]>(
+    MOCK_KINGDOM.pinnedGames.map((g) => g.id)
+  );
+  const [theme, setTheme] = useState("dark-gold");
+
+  const canAdvance = () => {
+    if (step === 0) return selectedGames.length >= 1;
+    if (step === 1) return !!theme;
+    if (step === 2) return name.trim().length >= 1;
+    return true;
+  };
+
+  const advance = () => {
+    if (step < TOTAL_STEPS - 1) {
+      setStep((s) => s + 1);
+    } else {
+      // Final step → fire onboarding complete, show completion screen
+      completeOnboarding(name.trim(), selectedGames, theme);
+      setStep(TOTAL_STEPS); // completion screen
+    }
+  };
+
+  const enterKingdom = () => navigate("/home");
+
+  return (
+    <div className="app-frame">
+      <div className="screen-content" style={{ paddingTop: 48, paddingBottom: 120 }}>
+
+        {/* ── Completion screen ── */}
+        {step === TOTAL_STEPS && (
+          <StepComplete name={name} onEnterKingdom={enterKingdom} />
+        )}
+
+        {/* ── Step 0: Pick games ── */}
+        {step === 0 && (
+          <StepPickGames selected={selectedGames} onChange={setSelectedGames} />
+        )}
+
+        {/* ── Step 1: Pick theme ── */}
+        {step === 1 && (
+          <StepPickTheme selected={theme} onChange={setTheme} />
+        )}
+
+        {/* ── Step 2: Set name ── */}
+        {step === 2 && (
+          <StepSetName value={name} onChange={setName} />
+        )}
+
+      </div>
+
+      {/* ── Footer: progress + CTA ── */}
+      {step < TOTAL_STEPS && (
+        <div
+          style={{
+            position: "sticky", bottom: 0,
+            background: "var(--bg-base)",
+            borderTop: "1px solid var(--border)",
+            padding: "16px 16px 32px",
+          }}
+        >
+          <div className="progress-dots" style={{ marginBottom: 16 }}>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className={`progress-dot ${i === step ? "active" : ""}`} />
+            ))}
+          </div>
+
+          <button
+            className="btn btn-primary"
+            disabled={!canAdvance()}
+            onClick={advance}
+          >
+            {step < TOTAL_STEPS - 1 ? "Continue" : "Build my Kingdom →"}
+          </button>
+
+          {step > 0 && (
+            <button
+              className="btn btn-ghost"
+              style={{ width: "100%", marginTop: 8 }}
+              onClick={() => setStep((s) => s - 1)}
+            >
+              Back
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
