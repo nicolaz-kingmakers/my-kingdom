@@ -1,4 +1,4 @@
-import type { NudgeTone, NudgeTrigger } from "../data/mockData";
+import type { NudgeTone, NudgeTrigger, PaymentInstrument } from "../data/mockData";
 
 export interface NudgeRequest {
   name: string;
@@ -10,6 +10,7 @@ export interface NudgeRequest {
   favouriteGames: string[];
   tone: NudgeTone;
   suggestedTopUpAmount: number;
+  paymentInstrument?: PaymentInstrument;
 }
 
 export interface NudgeResponse {

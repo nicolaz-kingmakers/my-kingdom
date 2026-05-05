@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
 import {
   MOCK_USER, MOCK_WALLET, MOCK_KINGDOM, MOCK_AI_CONTEXT,
-  User, Wallet, Kingdom, AiContext, WalletState, deriveWalletState,
+  User, Wallet, Kingdom, AiContext, WalletState, PaymentInstrument, deriveWalletState,
 } from "../data/mockData";
 
 // ─── Shape ───────────────────────────────────────────────────────────────────
@@ -13,16 +13,20 @@ interface AppState {
   aiContext: AiContext;
   isOnboarded: boolean;
   toast: string | null;
+  pendingAutoTopUp: number | null;
 }
 
 interface AppActions {
-  completeOnboarding: (name: string, pinnedGameIds: string[], theme: string) => void;
+  completeOnboarding: (name: string, pinnedGameIds: string[], theme: string, instrument: PaymentInstrument) => void;
   topUp: (amount: number) => void;
   spendBalance: (amount: number) => void;
   setAutoTopUp: (enabled: boolean, threshold: number, amount: number) => void;
+  setTheme: (themeId: string) => void;
   dismissNudge: () => void;
   setOpenNudge: (nudge: AiContext["openNudge"]) => void;
   clearToast: () => void;
+  confirmAutoTopUp: () => void;
+  cancelAutoTopUp: () => void;
 }
 
 type AppContextValue = AppState & AppActions;
@@ -38,11 +42,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [aiContext, setAiContext] = useState<AiContext>(MOCK_AI_CONTEXT);
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [pendingAutoTopUp, setPendingAutoTopUp] = useState<number | null>(null);
+
   const autoTopUpPending = useRef(false);
+  const prevWalletState = useRef<WalletState>(MOCK_WALLET.state);
 
   const completeOnboarding = useCallback(
-    (name: string, pinnedGameIds: string[], theme: string) => {
-      setUser((u) => ({ ...u, displayName: name, preferredTheme: theme }));
+    (name: string, pinnedGameIds: string[], theme: string, instrument: PaymentInstrument) => {
+      setUser((u) => ({ ...u, displayName: name, preferredTheme: theme, paymentInstrument: instrument }));
       setKingdom((k) => ({
         ...k,
         theme,
@@ -76,7 +83,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         ],
       };
     });
-    // Dismiss any open nudge — message is now stale
+    // Dismiss stale low-balance nudge; post-top-up nudge fires via wallet state effect
     setAiContext((a) => ({ ...a, openNudge: null }));
   }, []);
 
@@ -106,7 +113,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Auto top-up: fires 1.5s after a bet drops balance below threshold
+  // Keep me ready: show confirmation prompt when balance drops below threshold
   useEffect(() => {
     if (!autoTopUpPending.current) return;
     if (!wallet.autoTopUp.enabled) return;
@@ -114,12 +121,48 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     autoTopUpPending.current = false;
     const t = setTimeout(() => {
-      const amount = wallet.autoTopUp.topUpAmount;
-      topUp(amount);
-      setToast(`Auto top-up: +€${amount} added automatically 🔄`);
+      setPendingAutoTopUp(wallet.autoTopUp.topUpAmount);
     }, 1500);
     return () => clearTimeout(t);
   }, [wallet.balance, wallet.autoTopUp.enabled]);
+
+  // Post-top-up nudge: fires when vault transitions from low → healthy
+  useEffect(() => {
+    const prev = prevWalletState.current;
+    prevWalletState.current = wallet.state;
+
+    if (prev !== "HEALTHY" && wallet.state === "HEALTHY") {
+      const matchInfo = kingdom.pinnedGames[0]?.nextMatch ?? "your next match";
+      const t = setTimeout(() => {
+        setAiContext((a) => ({
+          ...a,
+          openNudge: {
+            id: `nudge_${Date.now()}`,
+            type: "SESSION_REMINDER",
+            message: `You're set, ${user.displayName}. ${matchInfo} — go get it.`,
+            ctaLabel: "Let's go",
+            ctaAction: "DISMISS",
+            suggestedAmount: 0,
+            firedAt: new Date().toISOString(),
+            dismissed: false,
+          },
+        }));
+      }, 500);
+      return () => clearTimeout(t);
+    }
+  }, [wallet.state, user.displayName, kingdom.pinnedGames]);
+
+  const confirmAutoTopUp = useCallback(() => {
+    if (pendingAutoTopUp === null) return;
+    const amount = pendingAutoTopUp;
+    setPendingAutoTopUp(null);
+    topUp(amount);
+    setToast(`Keep me ready: +R${amount} added ✓`);
+  }, [pendingAutoTopUp, topUp]);
+
+  const cancelAutoTopUp = useCallback(() => {
+    setPendingAutoTopUp(null);
+  }, []);
 
   const setAutoTopUp = useCallback(
     (enabled: boolean, threshold: number, amount: number) => {
@@ -130,6 +173,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     },
     []
   );
+
+  const setTheme = useCallback((themeId: string) => {
+    setKingdom((k) => ({ ...k, theme: themeId }));
+    setUser((u) => ({ ...u, preferredTheme: themeId }));
+  }, []);
 
   const dismissNudge = useCallback(() => {
     setAiContext((a) => ({ ...a, openNudge: null }));
@@ -144,9 +192,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider
       value={{
-        user, wallet, kingdom, aiContext, isOnboarded, toast,
-        completeOnboarding, topUp, spendBalance, setAutoTopUp,
-        dismissNudge, setOpenNudge, clearToast,
+        user, wallet, kingdom, aiContext, isOnboarded, toast, pendingAutoTopUp,
+        completeOnboarding, topUp, spendBalance, setAutoTopUp, setTheme,
+        dismissNudge, setOpenNudge, clearToast, confirmAutoTopUp, cancelAutoTopUp,
       }}
     >
       {children}

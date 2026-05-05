@@ -45,7 +45,9 @@ export default function NudgeCardSlot({ onTopUpRequest }: { onTopUpRequest: (amo
 
         {/* Actions */}
         <div style={{ display: "flex", gap: 8, paddingLeft: 42 }}>
-          <button onClick={() => onTopUpRequest(nudge.suggestedAmount)} style={{
+          <button
+            onClick={() => nudge.suggestedAmount > 0 ? onTopUpRequest(nudge.suggestedAmount) : dismissNudge()}
+            style={{
             background: "var(--brand)", border: "none", borderRadius: 8,
             color: "#fff", fontSize: 12, fontWeight: 800,
             padding: "8px 16px", cursor: "pointer",

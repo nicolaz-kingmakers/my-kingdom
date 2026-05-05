@@ -22,8 +22,11 @@ export default function StepComplete({ name, onEnterKingdom }: Props) {
           <p className="fade-up" style={{ color: "var(--text-secondary)", fontSize: 15, marginBottom: 12, lineHeight: 1.6, animationDelay: "180ms" }}>
             Welcome, <strong style={{ color: "var(--text-primary)" }}>{name}</strong>.
           </p>
-          <p className="fade-up" style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 48, animationDelay: "240ms" }}>
+          <p className="fade-up" style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 8, animationDelay: "240ms" }}>
             Your games. Your vault. Your rules.
+          </p>
+          <p className="fade-up" style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 48, animationDelay: "290ms" }}>
+            The app now works for you — before you even open it.
           </p>
 
           <button

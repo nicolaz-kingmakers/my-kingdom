@@ -2,12 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { MOCK_KINGDOM } from "../data/mockData";
+import type { PaymentInstrument } from "../data/mockData";
 import StepPickGames from "../screens/onboarding/StepPickGames";
 import StepPickTheme from "../screens/onboarding/StepPickTheme";
 import StepSetName from "../screens/onboarding/StepSetName";
+import StepFundVault from "../screens/onboarding/StepFundVault";
 import StepComplete from "../screens/onboarding/StepComplete";
 
-const TOTAL_STEPS = 3; // Complete screen is not a numbered step
+const TOTAL_STEPS = 4; // Complete screen is not a numbered step
+
+const STEP_LABELS = ["Your games", "Your style", "Your name", "Your vault"];
 
 export default function OnboardingFlow() {
   const navigate = useNavigate();
@@ -19,11 +23,13 @@ export default function OnboardingFlow() {
     MOCK_KINGDOM.pinnedGames.map((g) => g.id)
   );
   const [theme, setTheme] = useState("dark-gold");
+  const [instrument, setInstrument] = useState<PaymentInstrument>("INSTANT_EFT");
 
   const canAdvance = () => {
     if (step === 0) return selectedGames.length >= 1;
     if (step === 1) return !!theme;
     if (step === 2) return name.trim().length >= 1;
+    if (step === 3) return !!instrument;
     return true;
   };
 
@@ -31,8 +37,7 @@ export default function OnboardingFlow() {
     if (step < TOTAL_STEPS - 1) {
       setStep((s) => s + 1);
     } else {
-      // Final step → fire onboarding complete, show completion screen
-      completeOnboarding(name.trim(), selectedGames, theme);
+      completeOnboarding(name.trim(), selectedGames, theme, instrument);
       setStep(TOTAL_STEPS); // completion screen
     }
   };
@@ -63,6 +68,11 @@ export default function OnboardingFlow() {
           <StepSetName value={name} onChange={setName} />
         )}
 
+        {/* ── Step 3: Fund vault ── */}
+        {step === 3 && (
+          <StepFundVault selected={instrument} onChange={setInstrument} />
+        )}
+
       </div>
 
       {/* ── Footer: progress + CTA ── */}
@@ -75,8 +85,17 @@ export default function OnboardingFlow() {
             padding: "16px 16px 32px",
           }}
         >
+          {/* Step label */}
+          <div style={{
+            fontSize: 10, fontWeight: 700, color: "var(--text-muted)",
+            letterSpacing: 0.8, textAlign: "center", marginBottom: 12,
+          }}>
+            {STEP_LABELS[step].toUpperCase()} · {step + 1} of {TOTAL_STEPS}
+          </div>
+
+          {/* Progress dots */}
           <div className="progress-dots" style={{ marginBottom: 16 }}>
-            {[0, 1, 2].map((i) => (
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
               <div key={i} className={`progress-dot ${i === step ? "active" : ""}`} />
             ))}
           </div>
@@ -86,7 +105,7 @@ export default function OnboardingFlow() {
             disabled={!canAdvance()}
             onClick={advance}
           >
-            {step < TOTAL_STEPS - 1 ? "Continue" : "Build my Kingdom →"}
+            {step < TOTAL_STEPS - 1 ? "Continue" : "Enter my Kingdom →"}
           </button>
 
           {step > 0 && (

@@ -2,14 +2,21 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useApp } from "../../context/AppContext";
 
+const INSTRUMENT_LABEL: Record<string, string> = {
+  INSTANT_EFT: "Instant EFT (Ozow)",
+  SAVED_CARD: "Saved Card",
+  VOUCHER: "1Voucher",
+};
+
 export default function TopUpConfirmScreen() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { wallet, topUp } = useApp();
+  const { wallet, user, topUp } = useApp();
   const [loading, setLoading] = useState(false);
 
-  const amount = Number(params.get("amount") ?? 20);
+  const amount = Number(params.get("amount") ?? 180);
   const afterBalance = wallet.balance + amount;
+  const method = INSTRUMENT_LABEL[user.paymentInstrument] ?? "saved payment method";
 
   const handleConfirm = async () => {
     setLoading(true);
@@ -54,10 +61,10 @@ export default function TopUpConfirmScreen() {
             ADDING TO YOUR VAULT
           </div>
           <div style={{ fontSize: 56, fontWeight: 900, color: "#fff", letterSpacing: -2, lineHeight: 1 }}>
-            €{amount}
+            R{amount}
           </div>
           <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>
-            via saved payment method
+            via {method}
           </div>
         </div>
 
@@ -76,7 +83,7 @@ export default function TopUpConfirmScreen() {
           }}>
             <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>Current balance</span>
             <span style={{ fontSize: 15, fontWeight: 800, color: "var(--amber)" }}>
-              €{wallet.balance.toFixed(2)}
+              R{wallet.balance.toFixed(0)}
             </span>
           </div>
           <div style={{
@@ -86,7 +93,7 @@ export default function TopUpConfirmScreen() {
           }}>
             <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>After top-up</span>
             <span style={{ fontSize: 18, fontWeight: 900, color: "var(--green)" }}>
-              €{afterBalance.toFixed(2)}
+              R{afterBalance.toFixed(0)}
             </span>
           </div>
         </div>
@@ -110,7 +117,7 @@ export default function TopUpConfirmScreen() {
               </svg>
               Processing…
             </span>
-          ) : `Confirm — Add €${amount} →`}
+          ) : `Confirm — Add R${amount} →`}
         </button>
 
         <button

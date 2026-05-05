@@ -1,9 +1,10 @@
 import { useNavigate } from "react-router-dom";
 
 const MATCHES = [
-  { id: 1, league: "Premier League", home: "Chelsea", away: "Nottingham Forest", homeScore: 0, awayScore: 2, minute: "17", odds: ["3.90", "4.10", "1.75"] },
-  { id: 2, league: "La Liga",        home: "Real Madrid", away: "Barcelona",     homeScore: 1, awayScore: 1, minute: "54", odds: ["2.60", "3.20", "2.80"] },
-  { id: 3, league: "NBA Playoffs",   home: "Celtics",  away: "Knicks",           homeScore: 88, awayScore: 91, minute: "Q3", odds: ["1.62", "—",    "2.40"] },
+  { id: 1, league: "AFCON · Group Stage", home: "Nigeria",     away: "South Africa",    homeScore: 1, awayScore: 0, minute: "34", odds: ["2.30", "3.10", "3.20"] },
+  { id: 2, league: "La Liga",             home: "Real Madrid", away: "Barcelona",        homeScore: 1, awayScore: 1, minute: "54", odds: ["2.60", "3.20", "2.80"] },
+  { id: 3, league: "PSL",                 home: "Kaizer Chiefs", away: "Sundowns",       homeScore: 0, awayScore: 1, minute: "67", odds: ["2.10", "3.40", "3.60"] },
+  { id: 4, league: "NBA Playoffs",        home: "Celtics",     away: "Knicks",           homeScore: 88, awayScore: 91, minute: "Q3", odds: ["1.62", "—",    "2.40"] },
 ];
 
 const SPORTS = [

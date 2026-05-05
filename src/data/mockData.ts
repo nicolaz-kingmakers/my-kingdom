@@ -1,8 +1,10 @@
-// Typed version of mock-data.json — canonical shared state for the whole team.
+// Typed mock data — canonical shared state for the whole team.
 // Nico reads kingdom + user. Cris reads wallet. Abioye reads aiContext.
+// Demo context: South Africa · ZAR · PSL · Instant EFT
 
 export type WalletState = "HEALTHY" | "LOW" | "EMPTY";
 export type NudgeTone = "casual" | "competitive" | "analytical";
+export type PaymentInstrument = "INSTANT_EFT" | "SAVED_CARD" | "VOUCHER";
 export type NudgeTrigger =
   | "LOW_BALANCE_BEFORE_SESSION"
   | "SESSION_REMINDER"
@@ -12,7 +14,7 @@ export type NudgeTrigger =
 export interface Transaction {
   id: string;
   type: "TOP_UP" | "BET_PLACED" | "WINNINGS";
-  amount: number; // positive = credit, negative = debit
+  amount: number;
   timestamp: string;
   description?: string;
   status: string;
@@ -51,6 +53,7 @@ export interface User {
   playStyle: string;
   usualSessionDay: string;
   usualSessionTime: string;
+  paymentInstrument: PaymentInstrument;
 }
 
 export interface Kingdom {
@@ -86,57 +89,58 @@ export const MOCK_USER: User = {
   memberSince: "2024-03-15",
   tier: "Gold",
   preferredTheme: "dark-gold",
-  locale: "en-IE",
-  currency: "EUR",
+  locale: "en-ZA",
+  currency: "ZAR",
   playStyle: "competitive",
   usualSessionDay: "Friday",
   usualSessionTime: "20:00",
+  paymentInstrument: "INSTANT_EFT",
 };
 
 export const MOCK_WALLET: Wallet = {
-  balance: 4.2,
-  currency: "EUR",
+  balance: 42,
+  currency: "ZAR",
   state: "LOW",
-  autoTopUp: { enabled: true, triggerThreshold: 5, topUpAmount: 20 },
+  autoTopUp: { enabled: true, triggerThreshold: 50, topUpAmount: 180 },
   recentTransactions: [
     {
       id: "txn_001",
       type: "TOP_UP",
-      amount: 20,
+      amount: 100,
       timestamp: "2026-05-02T19:45:00Z",
-      method: "One-tap preset",
+      method: "Instant EFT",
       status: "SUCCESS",
     },
     {
       id: "txn_002",
       type: "BET_PLACED",
-      amount: -5,
+      amount: -25,
       timestamp: "2026-05-02T20:10:00Z",
-      description: "Man City vs Arsenal — Both to score",
+      description: "Kaizer Chiefs vs Orlando Pirates — Both to score",
       status: "SETTLED",
     },
     {
       id: "txn_003",
       type: "WINNINGS",
-      amount: 12.5,
+      amount: 62.5,
       timestamp: "2026-05-02T22:05:00Z",
-      description: "Man City vs Arsenal — payout",
+      description: "Kaizer Chiefs vs Orlando Pirates — payout",
       status: "CREDITED",
     },
   ],
-  topUpPresets: [10, 20, 50],
+  topUpPresets: [50, 100, 180],
 };
 
 export const MOCK_KINGDOM: Kingdom = {
   pinnedGames: [
     {
       id: "game_001",
-      name: "Premier League",
+      name: "PSL",
       sport: "football",
       icon: "⚽",
       pinOrder: 1,
       liveNow: true,
-      nextMatch: "Man City vs Arsenal · Sat 17:30",
+      nextMatch: "Kaizer Chiefs vs Orlando Pirates · Sat 17:30",
     },
     {
       id: "game_002",
@@ -164,18 +168,18 @@ export const MOCK_KINGDOM: Kingdom = {
 export const MOCK_AI_CONTEXT: AiContext = {
   lastSessionDate: "2026-05-02T20:00:00Z",
   averageSessionLengthMinutes: 90,
-  averageTopUpBeforeSession: 20,
-  typicalBetSize: 5,
+  averageTopUpBeforeSession: 180,
+  typicalBetSize: 25,
   favouriteMarket: "Both teams to score",
   nudgesTone: "competitive",
   openNudge: {
     id: "nudge_001",
     type: "LOW_BALANCE_BEFORE_SESSION",
     message:
-      "Friday night's almost here, Nico. Balance is €4.20 — not enough for your usual session. Top up €20?",
+      "Friday night's almost here, Nico. Balance is R42 — not enough for your usual PSL session. Top up R180?",
     ctaLabel: "Top up now",
     ctaAction: "OPEN_TOP_UP",
-    suggestedAmount: 20,
+    suggestedAmount: 180,
     firedAt: "2026-05-08T17:00:00Z",
     dismissed: false,
   },
@@ -183,13 +187,16 @@ export const MOCK_AI_CONTEXT: AiContext = {
 
 export const ALL_GAMES: PinnedGame[] = [
   ...MOCK_KINGDOM.pinnedGames,
-  { id: "game_004", name: "Tennis", sport: "tennis", icon: "🎾", pinOrder: 4, liveNow: false, nextMatch: "Roland Garros · Mon" },
-  { id: "game_005", name: "Formula 1", sport: "f1", icon: "🏎️", pinOrder: 5, liveNow: false, nextMatch: "Monaco GP · Sun" },
-  { id: "game_006", name: "Cricket", sport: "cricket", icon: "🏏", pinOrder: 6, liveNow: false, nextMatch: "IPL · Sat" },
+  { id: "game_004", name: "AFCON",             sport: "football",   icon: "🌍", pinOrder: 4, liveNow: true,  nextMatch: "Nigeria vs South Africa · Sat 20:00" },
+  { id: "game_005", name: "La Liga",            sport: "football",   icon: "🇪🇸", pinOrder: 5, liveNow: false, nextMatch: "Real Madrid vs Barcelona · Sun 20:00" },
+  { id: "game_006", name: "Champions League",   sport: "football",   icon: "⭐", pinOrder: 6, liveNow: false, nextMatch: "Real Madrid vs Man City · Wed 20:00" },
+  { id: "game_007", name: "Rugby",              sport: "rugby",      icon: "🏉", pinOrder: 7, liveNow: false, nextMatch: "Stormers vs Bulls · Sat" },
+  { id: "game_008", name: "Tennis",             sport: "tennis",     icon: "🎾", pinOrder: 8, liveNow: false, nextMatch: "Roland Garros · Mon" },
+  { id: "game_009", name: "Cricket",            sport: "cricket",    icon: "🏏", pinOrder: 9, liveNow: false, nextMatch: "IPL · Sat" },
 ];
 
 export function deriveWalletState(balance: number): WalletState {
-  if (balance <= 0) return "EMPTY";
-  if (balance < 10) return "LOW";
+  if (balance <= 10) return "EMPTY";
+  if (balance < 100) return "LOW";
   return "HEALTHY";
 }

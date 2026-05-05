@@ -1,12 +1,11 @@
-// Hook that wires the trigger evaluator + Claude API together.
-// Cris calls setOpenNudge via context; this hook does the polling.
+// Hook that wires the trigger evaluator + nudge generator together.
 // Mount it once in App.tsx — it runs silently in the background.
 
 import { useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import { generateNudge, evaluateTrigger } from "./nudgeGenerator";
 
-const CHECK_INTERVAL_MS = 60_000; // check every minute
+const CHECK_INTERVAL_MS = 60_000;
 
 export function useNudgeEngine() {
   const { user, wallet, aiContext, setOpenNudge } = useApp();
@@ -14,7 +13,6 @@ export function useNudgeEngine() {
 
   useEffect(() => {
     const check = async () => {
-      // Don't fire if there's already an active nudge
       if (aiContext.openNudge && !aiContext.openNudge.dismissed) return;
 
       const trigger = evaluateTrigger({
@@ -25,7 +23,6 @@ export function useNudgeEngine() {
 
       if (!trigger) return;
 
-      // Don't re-fire the same trigger within the same hour
       const triggerKey = `${trigger}_${new Date().toISOString().slice(0, 13)}`;
       if (lastFiredRef.current === triggerKey) return;
       lastFiredRef.current = triggerKey;
@@ -40,6 +37,7 @@ export function useNudgeEngine() {
         favouriteGames: aiContext.lastSessionDate ? [user.usualSessionDay] : [],
         tone: aiContext.nudgesTone,
         suggestedTopUpAmount: wallet.autoTopUp.topUpAmount,
+        paymentInstrument: user.paymentInstrument,
       });
 
       setOpenNudge({
@@ -54,7 +52,7 @@ export function useNudgeEngine() {
       });
     };
 
-    check(); // run immediately on mount
+    check();
     const interval = setInterval(check, CHECK_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [wallet.balance, user.usualSessionDay, user.usualSessionTime, aiContext.openNudge]);

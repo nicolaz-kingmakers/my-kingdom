@@ -47,7 +47,7 @@ export default function TopUpSuccessScreen() {
             color: "var(--green)", letterSpacing: -1,
             marginBottom: 6, animationDelay: "180ms",
           }}>
-            €{wallet.balance.toFixed(2)}
+            R{wallet.balance.toFixed(0)}
           </div>
 
           <p className="fade-up" style={{
@@ -55,7 +55,7 @@ export default function TopUpSuccessScreen() {
             marginBottom: 40, animationDelay: "240ms",
           }}>
             {lastTopUp
-              ? `+€${lastTopUp.amount.toFixed(2)} added · ${new Date(lastTopUp.timestamp).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}`
+              ? `+R${lastTopUp.amount.toFixed(0)} added · ${new Date(lastTopUp.timestamp).toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })}`
               : "Funds added to your vault"}
           </p>
 
@@ -67,7 +67,6 @@ export default function TopUpSuccessScreen() {
             Back to My Kingdom →
           </button>
 
-          {/* Auto-return hint */}
           <p className="fade-up" style={{
             marginTop: 16, fontSize: 11, color: "var(--text-muted)",
             animationDelay: "380ms",
