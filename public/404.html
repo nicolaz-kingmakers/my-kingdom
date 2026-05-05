@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      // GitHub Pages SPA fix — redirect 404s back to the app with the path in the hash
+      const path = window.location.pathname.replace('/my-kingdom', '') || '/';
+      window.location.replace('/my-kingdom/#' + path + window.location.search);
+    </script>
+  </head>
+  <body></body>
+</html>
