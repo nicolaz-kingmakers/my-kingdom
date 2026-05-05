@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import NudgeCardSlot from "../slots/NudgeCardSlot";
 import KingdomShelfSlot from "../slots/KingdomShelfSlot";
+import PaymentInsightsSlot from "../slots/PaymentInsightsSlot";
 import { THEME_CATALOG, DEFAULT_THEME } from "../data/themes";
 import StepPickTheme from "./onboarding/StepPickTheme";
 
@@ -307,6 +308,7 @@ export default function KingdomHomeScreen() {
         <div className="screen-content">
           <div style={{ paddingTop: 14 }}><NudgeCardSlot onTopUpRequest={handleTopUp} /></div>
           <div style={{ paddingTop: 20 }}><KingdomShelfSlot /></div>
+          <div style={{ paddingTop: 20 }}><PaymentInsightsSlot /></div>
 
           {/* Hero live match */}
           {heroMatch && (
