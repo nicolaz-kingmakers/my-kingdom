@@ -1,7 +1,7 @@
 // Root routing shell — owned by Abioye.
 // All screen navigation lives here. Nico and Cris never need to touch this.
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { useNudgeEngine } from "../ai/useNudgeEngine";
 
@@ -44,9 +44,9 @@ function Routes_() {
 
 export default function AppFlow() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes_ />
       <Toast />
-    </BrowserRouter>
+    </HashRouter>
   );
 }
