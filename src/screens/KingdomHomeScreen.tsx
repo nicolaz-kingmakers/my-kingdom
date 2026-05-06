@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import NudgeCardSlot from "../slots/NudgeCardSlot";
@@ -130,6 +130,10 @@ export default function KingdomHomeScreen() {
   const [betslip, setBetslip]             = useState<BetslipState | null>(null);
   const [showThemePicker, setShowThemePicker] = useState(false);
 
+  // Predetermined outcomes so demos are predictable (WIN·LOSS·WIN·WIN·LOSS cycling)
+  const BET_SEQUENCE: Array<"WIN" | "LOSS"> = ["WIN", "LOSS", "WIN", "WIN", "LOSS"];
+  const betOutcomeIdx = useRef(0);
+
   const handleTopUp = (amount: number) => navigate(`/topup/confirm?amount=${amount}`);
 
   const openBetslip = (m: Match, oddIdx: number, odd: string) => {
@@ -150,7 +154,8 @@ export default function KingdomHomeScreen() {
     setBetslip(b => b ? { ...b, phase: "placing" } : null);
     setTimeout(() => {
       spendBalance(stake);
-      const result: "WIN" | "LOSS" = Math.random() > 0.4 ? "WIN" : "LOSS";
+      const result: "WIN" | "LOSS" = BET_SEQUENCE[betOutcomeIdx.current % BET_SEQUENCE.length];
+      betOutcomeIdx.current += 1;
       setBetslip(b => b ? { ...b, phase: "result", result } : null);
       setTimeout(() => setBetslip(null), 2200);
     }, 900);

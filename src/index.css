@@ -62,7 +62,7 @@ html, body, #root {
 /* ─── App frame (mobile shell) ─────────────────────────────────────────── */
 .app-frame {
   max-width: 430px;
-  min-height: 100dvh;
+  height: 100dvh;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
