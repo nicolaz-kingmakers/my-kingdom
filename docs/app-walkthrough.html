@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Kingdom — App Walkthrough</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100vw;height:100vh;overflow:hidden;background:#0D0D0D;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',sans-serif;color:#fff}
+
+/* ── Deck ── */
+#deck{position:relative;width:100vw;height:100vh}
+
+.screen{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:20px;
+  opacity:0;transition:opacity .5s ease;pointer-events:none;
+}
+.screen.active{opacity:1;pointer-events:all}
+
+/* ── Phone shell (size set by JS via CSS vars) ── */
+.phone-shell{
+  width:var(--pw);height:var(--ph);
+  position:relative;border-radius:40px;
+  background:#0a0a0a;
+  border:2px solid rgba(255,255,255,.18);
+  box-shadow:
+    0 32px 100px rgba(0,0,0,.8),
+    0 0 0 1px rgba(255,255,255,.05) inset,
+    0 0 80px rgba(200,16,46,.06);
+  overflow:hidden;flex-shrink:0;
+}
+.phone-shell::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:90px;height:22px;background:#0a0a0a;border-radius:0 0 16px 16px;z-index:10;
+}
+.phone-shell::after{
+  content:'';position:absolute;inset:0;border-radius:40px;
+  background:linear-gradient(135deg,rgba(255,255,255,.05) 0%,transparent 60%);
+  pointer-events:none;z-index:11;
+}
+.phone-shell iframe{
+  width:390px;height:838px;border:none;
+  transform:scale(var(--scale));transform-origin:top left;
+  pointer-events:all;
+}
+
+/* ── Caption ── */
+.caption{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  flex-shrink:0;text-align:center;
+}
+.cap-label{
+  font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;
+  color:rgba(255,255,255,.35);
+}
+.cap-title{
+  font-size:17px;font-weight:800;color:#fff;letter-spacing:-.3px;
+}
+.cap-sub{
+  font-size:12px;color:rgba(255,255,255,.4);max-width:420px;line-height:1.5;
+}
+
+/* ── Type badges ── */
+.badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:3px 10px;border-radius:4px;
+  font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase;
+  margin-top:4px;
+}
+.badge.interactive{background:rgba(240,180,41,.12);color:#F0B429;border:1px solid rgba(240,180,41,.25)}
+.badge.auto{background:rgba(0,196,140,.1);color:#00C48C;border:1px solid rgba(0,196,140,.25)}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.badge.auto .badge-dot{animation:pulse 1.4s ease infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── Nav arrows ── */
+.nav-btn{
+  position:fixed;top:50%;transform:translateY(-50%);
+  width:52px;height:52px;border-radius:50%;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;cursor:pointer;
+  transition:all 200ms ease;color:rgba(255,255,255,.5);
+  z-index:100;user-select:none;
+}
+.nav-btn:hover{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.25)}
+.nav-btn.disabled{opacity:.15;pointer-events:none}
+#nav-prev{left:18px}
+#nav-next{right:18px}
+
+/* ── Counter ── */
+#ctr{
+  position:fixed;top:20px;right:24px;
+  font-size:11px;font-weight:700;letter-spacing:1.5px;
+  color:rgba(255,255,255,.2);z-index:100;
+}
+
+/* ── Keyboard hint ── */
+#hint{
+  position:fixed;bottom:14px;right:20px;
+  font-size:10px;font-weight:600;letter-spacing:.5px;
+  color:rgba(255,255,255,.12);z-index:100;
+}
+
+/* ── Progress dots ── */
+#dots{
+  position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+  display:flex;gap:6px;z-index:100;
+}
+.dot{
+  width:5px;height:5px;border-radius:50%;
+  background:rgba(255,255,255,.18);transition:all 200ms ease;
+}
+.dot.on{background:#F0B429;width:16px;border-radius:3px}
+</style>
+</head>
+<body>
+<div id="deck"></div>
+
+<div id="nav-prev" class="nav-btn disabled">←</div>
+<div id="nav-next" class="nav-btn">→</div>
+<div id="ctr">1 / 9</div>
+<div id="hint">← → keys to navigate</div>
+<div id="dots"></div>
+
+<script>
+const APP = 'https://nicolaz-kingmakers.github.io/my-kingdom';
+
+const SCREENS = [
+  {
+    url:   `${APP}/#/`,
+    label: '01 · ENTRY POINT',
+    title: 'Before — the generic experience',
+    sub:   'What every player sees today. No identity, no personalisation, no smart funding.',
+    type:  'interactive',
+  },
+  {
+    url:   `${APP}/#/onboarding?step=0`,
+    label: '02 · ONBOARDING',
+    title: 'Step 1 of 4 — Your Sports',
+    sub:   'Pick the games you follow. SA-first order: PSL, AFCON, Champions League, Cricket.',
+    type:  'interactive',
+  },
+  {
+    url:   `${APP}/#/onboarding?step=1`,
+    label: '03 · ONBOARDING',
+    title: 'Step 2 of 4 — Choose Your Style',
+    sub:   'Expand Clubs, Countries, or Tournaments. Tap any theme — the button and accent colours update instantly.',
+    type:  'interactive',
+  },
+  {
+    url:   `${APP}/#/home?demo=theme-picker`,
+    label: '04 · THEMES — FULL APP LIVE',
+    title: 'See the whole app transform — tap any theme',
+    sub:   'The sheet opens on your Kingdom home. Tap Kaizer Chiefs, Barcelona, South Africa — the full header, cards, and balance bar change instantly.',
+    type:  'interactive',
+  },
+  {
+    url:   `${APP}/#/onboarding?step=2`,
+    label: '05 · ONBOARDING',
+    title: 'Step 3 of 4 — Your Name',
+    sub:   'The Kingdom greets you by name. Every nudge and screen is addressed to you.',
+    type:  'interactive',
+  },
+  {
+    url:   `${APP}/#/onboarding?step=3`,
+    label: '06 · ONBOARDING',
+    title: 'Step 4 of 4 — Keep Me Ready Setup',
+    sub:   'Saved Card selected. Toggle is ON. Scroll to see: "Top up when vault drops below R50" and "Add R180 automatically". Tap any preset to change the values.',
+    type:  'interactive',
+  },
+  {
+    url:   `${APP}/#/home`,
+    label: '07 · KINGDOM HOME',
+    title: 'Personalised home — AI nudge fires',
+    sub:   'Tap any odds to open the betslip. Use the tabs to explore Sports, Games, Promos. Tap +R to top up.',
+    type:  'interactive',
+  },
+  {
+    url:   `${APP}/#/home?demo=themes`,
+    label: '08 · ALL 14 THEMES',
+    title: 'Home screen cycling all 14 themes',
+    sub:   'Clubs, countries, and tournaments auto-cycling every 2 seconds. The full Kingdom transforms — every colour, every screen.',
+    type:  'auto',
+  },
+  {
+    url:   `${APP}/#/home?demo=vault`,
+    label: '09 · KEEP ME READY — LIVE',
+    title: 'Watch the vault popup fire automatically',
+    sub:   'Balance is R42. AI nudge is on screen. In 2.5s the vault detects it\'s below R50 — the sheet slides up. Tap to confirm, vault turns green.',
+    type:  'auto',
+  },
+  {
+    url:   `${APP}/#/topup/confirm?amount=180`,
+    label: '10 · ONE-TAP TOP-UP',
+    title: 'Mode 1 — one tap to fund',
+    sub:   'Payment method pre-selected at onboarding. Amount pre-filled from session history. Confirm — vault green in under 5 seconds.',
+    type:  'interactive',
+  },
+];
+
+// ── Dynamic phone sizing ─────────────────────────────────────────────────────
+function computeScale() {
+  const PAD_V = 160; // top + caption + bottom
+  const PAD_H = 160; // left nav + right nav + some breathing room
+  const maxH = window.innerHeight - PAD_V;
+  const maxW = window.innerWidth  - PAD_H;
+  const byH  = maxH / 838;
+  const byW  = maxW / 390;
+  return Math.min(byH, byW, 0.92);
+}
+
+function applyScale() {
+  const s = computeScale();
+  document.documentElement.style.setProperty('--scale', s);
+  document.documentElement.style.setProperty('--pw', Math.round(390 * s) + 'px');
+  document.documentElement.style.setProperty('--ph', Math.round(838 * s) + 'px');
+}
+
+applyScale();
+window.addEventListener('resize', applyScale);
+
+// ── Build DOM ──────────────────────────────────────────────────────────
+const deck  = document.getElementById('deck');
+const dotsEl = document.getElementById('dots');
+
+SCREENS.forEach((sc, i) => {
+  // Screen container
+  const div = document.createElement('div');
+  div.className = 'screen' + (i === 0 ? ' active' : '');
+  div.id = `sc${i}`;
+
+  // Phone shell
+  const shell = document.createElement('div');
+  shell.className = 'phone-shell';
+
+  const iframe = document.createElement('iframe');
+  iframe.id = `if${i}`;
+  iframe.src = 'about:blank';
+  iframe.title = sc.title;
+  shell.appendChild(iframe);
+  div.appendChild(shell);
+
+  // Caption
+  const cap = document.createElement('div');
+  cap.className = 'caption';
+  cap.innerHTML = `
+    <div class="cap-label">${sc.label}</div>
+    <div class="cap-title">${sc.title}</div>
+    <div class="cap-sub">${sc.sub}</div>
+    <span class="badge ${sc.type}">
+      <span class="badge-dot"></span>
+      ${sc.type === 'auto' ? 'AUTO · DEMO' : 'INTERACTIVE'}
+    </span>
+  `;
+  div.appendChild(cap);
+  deck.appendChild(div);
+
+  // Progress dot
+  const dot = document.createElement('div');
+  dot.className = 'dot' + (i === 0 ? ' on' : '');
+  dot.id = `dot${i}`;
+  dotsEl.appendChild(dot);
+});
+
+// ── Navigation ──────────────────────────────────────────────────────────
+const loaded = new Set();
+let cur = 0;
+
+function loadIframe(i) {
+  if (loaded.has(i)) return;
+  const iframe = document.getElementById(`if${i}`);
+  if (iframe) { iframe.src = SCREENS[i].url; loaded.add(i); }
+}
+
+function goTo(i) {
+  if (i < 0 || i >= SCREENS.length) return;
+
+  document.getElementById(`sc${cur}`).classList.remove('active');
+  document.getElementById(`dot${cur}`).classList.remove('on');
+
+  cur = i;
+
+  document.getElementById(`sc${cur}`).classList.add('active');
+  document.getElementById(`dot${cur}`).classList.add('on');
+  document.getElementById('ctr').textContent = `${cur + 1} / ${SCREENS.length}`;
+
+  loadIframe(cur);
+  // Preload next
+  if (cur + 1 < SCREENS.length) loadIframe(cur + 1);
+
+  document.getElementById('nav-prev').classList.toggle('disabled', cur === 0);
+  document.getElementById('nav-next').classList.toggle('disabled', cur === SCREENS.length - 1);
+}
+
+document.getElementById('nav-prev').addEventListener('click', () => goTo(cur - 1));
+document.getElementById('nav-next').addEventListener('click', () => goTo(cur + 1));
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); goTo(cur + 1); }
+  if (e.key === 'ArrowLeft')                   { e.preventDefault(); goTo(cur - 1); }
+});
+
+// Click on a progress dot to jump directly
+dotsEl.addEventListener('click', e => {
+  const dot = e.target.closest('.dot');
+  if (!dot) return;
+  const idx = parseInt(dot.id.replace('dot', ''));
+  if (!isNaN(idx)) goTo(idx);
+});
+
+// ── Initial load ─────────────────────────────────────────────────────────
+goTo(0);
+</script>
+</body>
+</html>
