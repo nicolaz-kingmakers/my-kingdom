@@ -40,7 +40,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [wallet, setWallet] = useState<Wallet>(MOCK_WALLET);
   const [kingdom, setKingdom] = useState<Kingdom>(MOCK_KINGDOM);
   const [aiContext, setAiContext] = useState<AiContext>(MOCK_AI_CONTEXT);
-  const [isOnboarded, setIsOnboarded] = useState(false);
+  const [isOnboarded, setIsOnboarded] = useState(true);
   const [toast, setToast] = useState<string | null>(null);
   const [pendingAutoTopUp, setPendingAutoTopUp] = useState<number | null>(null);
 

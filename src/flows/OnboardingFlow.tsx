@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import { MOCK_KINGDOM } from "../data/mockData";
 import type { PaymentInstrument } from "../data/mockData";
@@ -16,8 +16,12 @@ const STEP_LABELS = ["Your games", "Your style", "Your name", "Your vault"];
 export default function OnboardingFlow() {
   const navigate = useNavigate();
   const { completeOnboarding } = useApp();
+  const [searchParams] = useSearchParams();
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(() => {
+    const s = parseInt(searchParams.get("step") ?? "0");
+    return isNaN(s) ? 0 : Math.min(s, 3);
+  });
   const [name, setName] = useState("Nico");
   const [selectedGames, setSelectedGames] = useState<string[]>(
     ["game_006", "game_005", "game_001", "game_004", "game_009"]
