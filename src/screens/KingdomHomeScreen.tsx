@@ -267,11 +267,11 @@ export default function KingdomHomeScreen() {
             </button>
             <div style={{
               width: 46, height: 46, borderRadius: "50%", flexShrink: 0,
-              background: "linear-gradient(135deg, #1a1200, #3d2e00)",
-              border: "2px solid #F0B429",
-              boxShadow: "0 0 12px rgba(240,180,41,0.4)",
+              background: activeTheme.accentColor,
+              border: "2px solid rgba(255,255,255,0.25)",
+              boxShadow: "0 0 12px var(--gold-dim)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 18, fontWeight: 900, color: "#F0B429",
+              fontSize: 18, fontWeight: 900, color: activeTheme.accentTextColor,
               letterSpacing: -0.5,
             }}>
               {user.displayName.charAt(0).toUpperCase()}
