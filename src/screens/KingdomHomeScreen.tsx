@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 import NudgeCardSlot from "../slots/NudgeCardSlot";
 import KingdomShelfSlot from "../slots/KingdomShelfSlot";
@@ -117,6 +117,13 @@ const PROMOS = [
 
 const TABS = ["MY KINGDOM", "SPORTS", "GAMES", "PROMOS"];
 
+// Demo mode: all theme IDs cycled on ?demo=themes
+const DEMO_THEME_IDS = [
+  "dark-gold", "kaizer-chiefs", "south-africa", "champions-league",
+  "nigeria", "barcelona", "afcon", "orlando-pirates", "zambia",
+  "real-madrid", "arsenal", "world-cup", "sundowns", "spain",
+];
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function KingdomHomeScreen() {
@@ -133,6 +140,26 @@ export default function KingdomHomeScreen() {
   // Predetermined outcomes so demos are predictable (WIN·LOSS·WIN·WIN·LOSS cycling)
   const BET_SEQUENCE: Array<"WIN" | "LOSS"> = ["WIN", "LOSS", "WIN", "WIN", "LOSS"];
   const betOutcomeIdx = useRef(0);
+
+  // ── Demo modes (activated via ?demo=themes or ?demo=vault) ──────────────────
+  const [searchParams] = useSearchParams();
+  const demoMode = searchParams.get("demo");
+  const themeIdx = useRef(0);
+
+  useEffect(() => {
+    if (demoMode !== "themes") return;
+    const id = setInterval(() => {
+      themeIdx.current = (themeIdx.current + 1) % DEMO_THEME_IDS.length;
+      setTheme(DEMO_THEME_IDS[themeIdx.current]);
+    }, 2200);
+    return () => clearInterval(id);
+  }, [demoMode, setTheme]);
+
+  useEffect(() => {
+    if (demoMode !== "vault") return;
+    const t = setTimeout(() => spendBalance(10), 2500);
+    return () => clearTimeout(t);
+  }, [demoMode, spendBalance]);
 
   const handleTopUp = (amount: number) => navigate(`/topup/confirm?amount=${amount}`);
 
