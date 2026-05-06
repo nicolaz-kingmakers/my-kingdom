@@ -172,13 +172,17 @@ export const MOCK_AI_CONTEXT: AiContext = {
 };
 
 export const ALL_GAMES: PinnedGame[] = [
-  ...MOCK_KINGDOM.pinnedGames,
-  { id: "game_004", name: "AFCON",             sport: "football",   icon: "🌍", pinOrder: 4, liveNow: true,  nextMatch: "Nigeria vs South Africa · Sat 20:00" },
-  { id: "game_005", name: "La Liga",            sport: "football",   icon: "🇪🇸", pinOrder: 5, liveNow: false, nextMatch: "Real Madrid vs Barcelona · Sun 20:00" },
-  { id: "game_006", name: "Champions League",   sport: "football",   icon: "⭐", pinOrder: 6, liveNow: false, nextMatch: "Real Madrid vs Man City · Wed 20:00" },
-  { id: "game_007", name: "Rugby",              sport: "rugby",      icon: "🏉", pinOrder: 7, liveNow: false, nextMatch: "Stormers vs Bulls · Sat" },
-  { id: "game_008", name: "Tennis",             sport: "tennis",     icon: "🎾", pinOrder: 8, liveNow: false, nextMatch: "Roland Garros · Mon" },
-  { id: "game_009", name: "Cricket",            sport: "cricket",    icon: "🏏", pinOrder: 9, liveNow: false, nextMatch: "IPL · Sat" },
+  // SA / Nigeria / Spain priority — shown first, pre-selected by default
+  { id: "game_006", name: "Champions League",   sport: "football",   icon: "⭐", pinOrder: 1, liveNow: false, nextMatch: "Real Madrid vs Man City · Wed 20:00" },
+  { id: "game_005", name: "La Liga",            sport: "football",   icon: "🇪🇸", pinOrder: 2, liveNow: false, nextMatch: "Real Madrid vs Barcelona · Sun 20:00" },
+  { id: "game_001", name: "PSL",                sport: "football",   icon: "⚽", pinOrder: 3, liveNow: true,  nextMatch: "Kaizer Chiefs vs Orlando Pirates · Sat 17:30" },
+  { id: "game_004", name: "AFCON",              sport: "football",   icon: "🌍", pinOrder: 4, liveNow: true,  nextMatch: "Nigeria vs South Africa · Sat 20:00" },
+  { id: "game_009", name: "Cricket",            sport: "cricket",    icon: "🏏", pinOrder: 5, liveNow: false, nextMatch: "IPL · Sat" },
+  // Secondary
+  { id: "game_007", name: "Rugby",              sport: "rugby",      icon: "🏉", pinOrder: 6, liveNow: false, nextMatch: "Stormers vs Bulls · Sat" },
+  { id: "game_008", name: "Tennis",             sport: "tennis",     icon: "🎾", pinOrder: 7, liveNow: false, nextMatch: "Roland Garros · Mon" },
+  { id: "game_002", name: "UFC / MMA",          sport: "mma",        icon: "🥊", pinOrder: 8, liveNow: false, nextMatch: "UFC 314 · Sat 03:00" },
+  { id: "game_003", name: "NBA",                sport: "basketball", icon: "🏀", pinOrder: 9, liveNow: false, nextMatch: "Celtics vs Knicks · Fri 00:30" },
 ];
 
 export function deriveWalletState(balance: number): WalletState {

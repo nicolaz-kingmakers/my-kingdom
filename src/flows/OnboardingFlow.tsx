@@ -20,7 +20,7 @@ export default function OnboardingFlow() {
   const [step, setStep] = useState(0);
   const [name, setName] = useState("Nico");
   const [selectedGames, setSelectedGames] = useState<string[]>(
-    MOCK_KINGDOM.pinnedGames.map((g) => g.id)
+    ["game_006", "game_005", "game_001", "game_004", "game_009"]
   );
   const [theme, setTheme] = useState("dark-gold");
   const [instrument, setInstrument] = useState<PaymentInstrument>("SAVED_CARD");
