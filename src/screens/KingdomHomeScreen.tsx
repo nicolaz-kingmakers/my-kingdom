@@ -147,6 +147,10 @@ export default function KingdomHomeScreen() {
   const themeIdx = useRef(0);
 
   useEffect(() => {
+    if (demoMode === "theme-picker") setShowThemePicker(true);
+  }, [demoMode]);
+
+  useEffect(() => {
     if (demoMode !== "themes") return;
     const id = setInterval(() => {
       themeIdx.current = (themeIdx.current + 1) % DEMO_THEME_IDS.length;

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useApp } from "../context/AppContext";
-import { MOCK_KINGDOM } from "../data/mockData";
 import type { PaymentInstrument } from "../data/mockData";
 import StepPickGames from "../screens/onboarding/StepPickGames";
 import StepPickTheme from "../screens/onboarding/StepPickTheme";
@@ -15,7 +14,7 @@ const STEP_LABELS = ["Your games", "Your style", "Your name", "Your vault"];
 
 export default function OnboardingFlow() {
   const navigate = useNavigate();
-  const { completeOnboarding } = useApp();
+  const { completeOnboarding, setTheme: applyTheme } = useApp();
   const [searchParams] = useSearchParams();
 
   const [step, setStep] = useState(() => {
@@ -28,7 +27,13 @@ export default function OnboardingFlow() {
   );
   const [theme, setTheme] = useState("dark-gold");
   const [instrument, setInstrument] = useState<PaymentInstrument>("SAVED_CARD");
-  const [keepMeReady, setKeepMeReady] = useState<KeepMeReadyConfig>({ enabled: false, threshold: 50, amount: 180 });
+  const [keepMeReady, setKeepMeReady] = useState<KeepMeReadyConfig>({ enabled: true, threshold: 50, amount: 180 });
+
+  // Apply theme to AppContext live so the full app transforms as user picks during onboarding
+  const handleThemeChange = (t: string) => {
+    setTheme(t);
+    applyTheme(t);
+  };
 
   const canAdvance = () => {
     if (step === 0) return selectedGames.length >= 1;
@@ -65,7 +70,7 @@ export default function OnboardingFlow() {
 
         {/* ── Step 1: Pick theme ── */}
         {step === 1 && (
-          <StepPickTheme selected={theme} onChange={setTheme} />
+          <StepPickTheme selected={theme} onChange={handleThemeChange} />
         )}
 
         {/* ── Step 2: Set name ── */}
