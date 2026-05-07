@@ -1,0 +1,521 @@
+import { useEffect } from "react";
+
+const DECK_CSS = `
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+.fi{opacity:0;transform:translateY(18px);transition:opacity .5s ease,transform .5s ease}
+.fi.v{opacity:1;transform:none}
+
+#deck{position:relative;width:100vw;height:100vh}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:48px 80px;
+  opacity:0;transition:opacity .7s ease;pointer-events:none}
+.slide.active{opacity:1;pointer-events:all}
+
+.slide.split{flex-direction:row;align-items:center;justify-content:center;gap:56px;padding:40px 60px}
+.split-left{flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.split-right{flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0}
+
+.phone-shell{
+  width:295px;height:634px;
+  position:relative;border-radius:40px;
+  background:#0a0a0a;
+  border:2px solid rgba(255,255,255,.18);
+  box-shadow:0 24px 80px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.05) inset;
+  overflow:hidden;
+}
+.phone-shell::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:90px;height:22px;background:#0a0a0a;border-radius:0 0 16px 16px;z-index:10;
+}
+.phone-shell::after{
+  content:'';position:absolute;inset:0;border-radius:40px;
+  background:linear-gradient(135deg,rgba(255,255,255,.04) 0%,transparent 50%);
+  pointer-events:none;z-index:11;
+}
+.phone-shell iframe{
+  width:390px;height:838px;border:none;
+  transform:scale(0.757);transform-origin:top left;
+  pointer-events:all;
+}
+
+#prog{position:fixed;bottom:0;left:0;height:4px;background:#F0B429;
+  transition:width .5s linear;z-index:999}
+#ctr{position:fixed;top:20px;right:24px;font-size:11px;font-weight:700;
+  color:rgba(255,255,255,.2);letter-spacing:1.5px;z-index:999}
+#hint{position:fixed;bottom:14px;right:20px;font-size:10px;font-weight:600;
+  color:rgba(255,255,255,.15);letter-spacing:.5px;z-index:999}
+
+.ey{font-size:11px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;
+  color:#F0B429;margin-bottom:12px}
+h1.giant{font-size:88px;font-weight:900;line-height:1;letter-spacing:-3px;text-align:center;
+  background:linear-gradient(135deg,#F0B429 0%,#fff 50%,#F0B429 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+h2.big{font-size:50px;font-weight:900;line-height:1.1;letter-spacing:-1.5px;
+  text-align:center;margin-bottom:14px}
+h2.split-h{font-size:42px;font-weight:900;line-height:1.1;letter-spacing:-1.2px;margin-bottom:12px}
+.sub{font-size:17px;color:rgba(255,255,255,.6);text-align:center;line-height:1.6;max-width:600px;margin:0 auto 8px}
+.split-sub{font-size:15px;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:20px}
+
+.feat-list{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.feat{display:flex;align-items:flex-start;gap:12px;font-size:15px;color:rgba(255,255,255,.8);line-height:1.45}
+.feat-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:6px;background:#F0B429}
+.feat-dot.gr{background:#00C48C}.feat-dot.rd{background:#C8102E}.feat-dot.am{background:#F59E0B}
+
+#s1::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 65% 55% at 50% 50%,rgba(200,16,46,.12) 0%,transparent 70%)}
+
+.pillar-row{display:flex;gap:24px;margin-top:36px}
+.pillar{flex:1;max-width:300px;background:#141414;border-radius:20px;padding:30px 26px;text-align:center}
+.pillar.gb{border:1px solid rgba(240,180,41,.35);box-shadow:0 0 40px rgba(240,180,41,.07)}
+.pillar.rb{border:1px solid rgba(200,16,46,.35);box-shadow:0 0 40px rgba(200,16,46,.07)}
+.p-icon{font-size:44px;margin-bottom:14px}.p-title{font-size:20px;font-weight:900;margin-bottom:8px}
+.p-body{font-size:14px;color:rgba(255,255,255,.5);line-height:1.5}
+.rev-eq{margin-top:28px;background:rgba(0,196,140,.08);border:1px solid rgba(0,196,140,.25);
+  border-radius:12px;padding:15px 32px;font-size:15px;font-weight:700;color:#00C48C;text-align:center}
+
+.ben-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:32px;width:100%;max-width:820px}
+.ben-card{background:#141414;border:1px solid rgba(255,255,255,.07);border-radius:18px;padding:26px 24px}
+.ben-card.fp{border-top:3px solid #F0B429}.ben-card.fb{border-top:3px solid #00C48C}
+.bh{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:18px}
+.bh.g{color:#F0B429}.bh.gr{color:#00C48C}
+.bi{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;font-size:14px;color:rgba(255,255,255,.75);line-height:1.45}
+.bd{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.bd.g{background:#F0B429}.bd.gr{background:#00C48C}
+
+.mkt-row{display:flex;align-items:center;justify-content:center;margin-top:48px}
+.mkt{text-align:center;padding:0 44px}
+.mkt-flag{font-size:60px;margin-bottom:12px}.mkt-name{font-size:17px;font-weight:900;margin-bottom:4px}
+.mkt-method{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:9px}
+.mkt-badge{display:inline-block;padding:4px 12px;border-radius:5px;font-size:9px;font-weight:800;letter-spacing:.5px}
+.mkt-arr{font-size:28px;color:#F0B429;padding:0 4px;margin-bottom:24px}
+
+#s11::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(240,180,41,.08) 0%,transparent 70%)}
+.cl{font-size:36px;font-weight:800;text-align:center;color:rgba(255,255,255,.6);margin-bottom:10px}
+.cl span{color:#fff}
+
+.step-badge{display:inline-flex;align-items:center;gap:8px;
+  background:rgba(240,180,41,.1);border:1px solid rgba(240,180,41,.3);
+  border-radius:50px;padding:6px 14px;margin-bottom:16px}
+.step-num{width:22px;height:22px;border-radius:50%;background:#F0B429;
+  color:#000;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.step-lbl{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#F0B429}
+
+.before-badge{display:inline-flex;align-items:center;gap:8px;
+  background:rgba(200,16,46,.1);border:1px solid rgba(200,16,46,.3);
+  border-radius:50px;padding:6px 14px;margin-bottom:16px}
+.before-dot{width:7px;height:7px;border-radius:50%;background:#C8102E}
+.before-lbl{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#C8102E}
+
+.live-badge{display:inline-flex;align-items:center;gap:8px;
+  background:rgba(0,196,140,.1);border:1px solid rgba(0,196,140,.3);
+  border-radius:50px;padding:6px 14px;margin-bottom:16px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#00C48C;animation:deck-pulse 1.4s ease infinite}
+.live-lbl{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:#00C48C}
+
+@keyframes deck-pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.callout{background:#141414;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:16px 18px;margin-top:20px}
+.callout-lbl{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:8px}
+.callout-val{font-size:22px;font-weight:900;color:#F0B429}
+.callout-desc{font-size:12px;color:rgba(255,255,255,.4);margin-top:3px;line-height:1.4}
+`;
+
+const DECK_HTML = `
+<div id="prog" style="width:0%"></div>
+<div id="ctr">1 / 11</div>
+<div id="hint">click outside phone to advance · auto-plays</div>
+
+<div class="slide active" id="s1">
+  <div class="fi" data-d="200" style="font-size:80px;margin-bottom:16px">👑</div>
+  <h1 class="giant fi" data-d="500">MY KINGDOM</h1>
+  <p class="fi" data-d="900" style="font-size:22px;color:rgba(255,255,255,.55);margin-top:14px;letter-spacing:.3px">The vault that knows your game.</p>
+  <p class="fi" data-d="1300" style="position:absolute;bottom:40px;font-size:11px;font-weight:700;color:rgba(255,255,255,.2);letter-spacing:2px;text-transform:uppercase">TeamInIt2WinIt · KingMakers Hackathon 2026</p>
+</div>
+
+<div class="slide" id="s2">
+  <p class="ey fi" data-d="100">The Opportunity</p>
+  <h2 class="big fi" data-d="300">Two things that move<br>the revenue needle</h2>
+  <div class="pillar-row">
+    <div class="pillar gb fi" data-d="700">
+      <div class="p-icon">↩</div>
+      <div class="p-title">Bring players back</div>
+      <div class="p-body">Give them an emotional reason to return. Make the app feel like theirs.</div>
+    </div>
+    <div class="pillar rb fi" data-d="1000">
+      <div class="p-icon">🎯</div>
+      <div class="p-title">Keep them playing</div>
+      <div class="p-body">Remove every barrier between intent and placing a bet.</div>
+    </div>
+  </div>
+  <div class="rev-eq fi" data-d="1400">More time in app → higher top-up frequency → more revenue</div>
+</div>
+
+<div class="slide split" id="s3">
+  <div class="split-left fi" data-d="300">
+    <div class="phone-shell">
+      <iframe id="iframe-before" src="about:blank" title="Before screen"></iframe>
+    </div>
+  </div>
+  <div class="split-right">
+    <div class="before-badge fi" data-d="200">
+      <span class="before-dot"></span>
+      <span class="before-lbl">Today's experience</span>
+    </div>
+    <h2 class="split-h fi" data-d="400">Generic.<br>The same for everyone.</h2>
+    <p class="split-sub fi" data-d="600">Same screen, same offers, same layout — regardless of the sports a player follows or how they like to play.</p>
+    <div class="feat-list fi" data-d="800">
+      <div class="feat"><div class="feat-dot am"></div>No identity — feels like a utility, not a product</div>
+      <div class="feat"><div class="feat-dot am"></div>Funding buried 6+ steps deep</div>
+      <div class="feat"><div class="feat-dot am"></div>No proactive reminder before the big match</div>
+    </div>
+    <div class="callout fi" data-d="1100">
+      <div class="callout-lbl">The result</div>
+      <div class="callout-val" style="color:#C8102E">Players churn early</div>
+      <div class="callout-desc">No emotional ownership → no reason to come back.</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide split" id="s4">
+  <div class="split-left fi" data-d="300">
+    <div class="phone-shell">
+      <iframe id="iframe-games" src="about:blank" title="Pick your games"></iframe>
+    </div>
+  </div>
+  <div class="split-right">
+    <div class="step-badge fi" data-d="200">
+      <span class="step-num">1</span>
+      <span class="step-lbl">Setup · Step 1 of 4</span>
+    </div>
+    <h2 class="split-h fi" data-d="400">Start with<br>your sports</h2>
+    <p class="split-sub fi" data-d="600">Four quick choices. A personalised Kingdom in under 60 seconds. We begin with the sport that drives Friday night sessions.</p>
+    <div class="feat-list fi" data-d="800">
+      <div class="feat"><div class="feat-dot"></div>SA-first: PSL, AFCON, Champions League, Cricket</div>
+      <div class="feat"><div class="feat-dot"></div>Games pinned to your Kingdom home screen</div>
+      <div class="feat"><div class="feat-dot"></div>Drives every nudge that fires after this</div>
+    </div>
+    <div class="callout fi" data-d="1100">
+      <div class="callout-lbl">Time to personalise</div>
+      <div class="callout-val">&lt; 60 seconds</div>
+      <div class="callout-desc">4 steps: sports · style · name · vault setup</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide split" id="s5">
+  <div class="split-left fi" data-d="300">
+    <div class="phone-shell">
+      <iframe id="iframe-themes" src="about:blank" title="Theme cycling"></iframe>
+    </div>
+  </div>
+  <div class="split-right">
+    <div class="step-badge fi" data-d="200">
+      <span class="step-num">2</span>
+      <span class="step-lbl">Setup · Step 2 of 4</span>
+    </div>
+    <h2 class="split-h fi" data-d="400">14 Themes —<br>The Whole App Changes</h2>
+    <p class="split-sub fi" data-d="600">Pick your club, country, or tournament. Watch every colour, every gradient, every screen transform in real time.</p>
+    <div class="feat-list fi" data-d="800">
+      <div class="feat"><div class="feat-dot"></div>Clubs — Kaizer Chiefs, Orlando Pirates, Real Madrid &amp; more</div>
+      <div class="feat"><div class="feat-dot"></div>Tournaments — Champions League, AFCON, World Cup</div>
+      <div class="feat"><div class="feat-dot"></div>Countries — South Africa, Nigeria, Zambia, Spain</div>
+    </div>
+    <div class="callout fi" data-d="1100">
+      <div class="callout-lbl">Why it matters</div>
+      <div class="callout-val">Identity drives loyalty</div>
+      <div class="callout-desc">When the app feels like theirs, they keep coming back.</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide split" id="s6">
+  <div class="split-left fi" data-d="300">
+    <div class="phone-shell">
+      <iframe id="iframe-vault-setup" src="about:blank" title="Vault setup"></iframe>
+    </div>
+  </div>
+  <div class="split-right">
+    <div class="step-badge fi" data-d="200">
+      <span class="step-num">4</span>
+      <span class="step-lbl">Setup · Step 4 of 4</span>
+    </div>
+    <h2 class="split-h fi" data-d="400">Set Up<br>Keep Me Ready</h2>
+    <p class="split-sub fi" data-d="600">Choose your payment method once. Set your threshold and top-up amount. From now on, the vault manages itself.</p>
+    <div class="feat-list fi" data-d="800">
+      <div class="feat"><div class="feat-dot"></div>Card or MoMo unlocks automatic refill</div>
+      <div class="feat"><div class="feat-dot"></div>Set trigger: "refill when vault drops below R50"</div>
+      <div class="feat"><div class="feat-dot"></div>Set amount: "add R180 automatically"</div>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:20px" class="fi" data-d="1100">
+      <div class="callout" style="flex:1;margin-top:0">
+        <div class="callout-lbl">Trigger</div>
+        <div class="callout-val">Below R50</div>
+        <div class="callout-desc">Vault drops → top-up fires</div>
+      </div>
+      <div class="callout" style="flex:1;margin-top:0">
+        <div class="callout-lbl">Amount</div>
+        <div class="callout-val">+R180</div>
+        <div class="callout-desc">Typical session spend</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="slide split" id="s7">
+  <div class="split-left fi" data-d="300">
+    <div class="phone-shell">
+      <iframe id="iframe-home" src="about:blank" title="Keep me ready demo"></iframe>
+    </div>
+  </div>
+  <div class="split-right">
+    <div class="live-badge fi" data-d="200">
+      <span class="live-dot"></span>
+      <span class="live-lbl">Live demo</span>
+    </div>
+    <h2 class="split-h fi" data-d="400">Keep Me Ready —<br>Watch It Fire</h2>
+    <p class="split-sub fi" data-d="600">Balance is R42. The vault detects it's below the R50 threshold. A confirmation sheet slides up automatically.</p>
+    <div class="feat-list fi" data-d="800">
+      <div class="feat"><div class="feat-dot gr"></div>AI nudge already on screen — "PSL in 3 hours"</div>
+      <div class="feat"><div class="feat-dot gr"></div>Vault detects low balance → sheet slides up</div>
+      <div class="feat"><div class="feat-dot gr"></div>Tap confirm → +R180 → vault turns green</div>
+    </div>
+    <div class="callout fi" data-d="1100">
+      <div class="callout-lbl">Amber → green</div>
+      <div class="callout-val">Under 5 seconds</div>
+      <div class="callout-desc">Session never breaks. Player never notices.</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide split" id="s8">
+  <div class="split-left fi" data-d="300">
+    <div class="phone-shell">
+      <iframe id="iframe-topup" src="about:blank" title="Top-up confirm"></iframe>
+    </div>
+  </div>
+  <div class="split-right">
+    <div class="step-badge fi" data-d="200">
+      <span class="step-num">3</span>
+      <span class="step-lbl">Mode 1 · One-tap</span>
+    </div>
+    <h2 class="split-h fi" data-d="400">One-Tap Top-Up</h2>
+    <p class="split-sub fi" data-d="600">Funding an account today means leaving the betting screen and tapping 6+ times. We reduce that to one.</p>
+    <div class="feat-list fi" data-d="800">
+      <div class="feat"><div class="feat-dot rd"></div><span>Payment method set <strong style="color:#fff">once</strong> at onboarding</span></div>
+      <div class="feat"><div class="feat-dot rd"></div>Pre-filled amount from your session history</div>
+      <div class="feat"><div class="feat-dot rd"></div><span>Confirm → funded. <strong style="color:#fff">Session never breaks.</strong></span></div>
+    </div>
+    <div class="callout fi" data-d="1100">
+      <div class="callout-lbl">Friction reduction</div>
+      <div class="callout-val">6 steps → 1 tap</div>
+      <div class="callout-desc">From leaving the betting screen to vault green in under 5 seconds.</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s9">
+  <p class="ey fi" data-d="100">The payoff</p>
+  <h2 class="big fi" data-d="300">User &amp; Business Benefits</h2>
+  <div class="ben-grid">
+    <div class="ben-card fp fi" data-d="700">
+      <div class="bh g">For the player</div>
+      <div class="bi"><div class="bd g"></div>App feels built specifically for them</div>
+      <div class="bi"><div class="bd g"></div>Balance always ready before sessions start</div>
+      <div class="bi"><div class="bd g"></div>Zero friction between intent and placing a bet</div>
+      <div class="bi"><div class="bd g"></div>Never runs out of funds mid-session</div>
+    </div>
+    <div class="ben-card fb fi" data-d="1000">
+      <div class="bh gr">For the business</div>
+      <div class="bi"><div class="bd gr"></div>Lower Month-1 churn via emotional ownership</div>
+      <div class="bi"><div class="bd gr"></div>Higher top-up frequency and average deposit size</div>
+      <div class="bi"><div class="bd gr"></div>AI nudges replace expensive CRM campaigns at scale</div>
+      <div class="bi"><div class="bd gr"></div>Pre-session funding shifts from reactive to proactive</div>
+    </div>
+  </div>
+</div>
+
+<div class="slide" id="s10">
+  <p class="ey fi" data-d="100">One build. Three markets.</p>
+  <h2 class="big fi" data-d="300">Built to scale across Africa</h2>
+  <div class="mkt-row">
+    <div class="mkt fi" data-d="700">
+      <div class="mkt-flag">🇿🇦</div>
+      <div class="mkt-name">South Africa</div>
+      <div class="mkt-method">Instant EFT · Saved Card</div>
+      <span class="mkt-badge" style="background:rgba(0,196,140,.15);color:#00C48C">LAUNCH MARKET</span>
+    </div>
+    <div class="mkt-arr fi" data-d="1000">→</div>
+    <div class="mkt fi" data-d="1000">
+      <div class="mkt-flag">🇳🇬</div>
+      <div class="mkt-name">Nigeria</div>
+      <div class="mkt-method">Saved Card</div>
+      <span class="mkt-badge" style="background:rgba(240,180,41,.12);color:#F0B429">EXPANSION</span>
+    </div>
+    <div class="mkt-arr fi" data-d="1300">→</div>
+    <div class="mkt fi" data-d="1300">
+      <div class="mkt-flag">🇿🇲</div>
+      <div class="mkt-name">Zambia</div>
+      <div class="mkt-method">MTN MoMo · Airtel Money</div>
+      <span class="mkt-badge" style="background:rgba(240,180,41,.12);color:#F0B429">EXPANSION</span>
+    </div>
+  </div>
+  <p class="fi" data-d="1700" style="margin-top:40px;font-size:15px;color:rgba(255,255,255,.35);font-style:italic">Same vault. Same AI. Localised payment instrument per market.</p>
+</div>
+
+<div class="slide" id="s11">
+  <div style="margin-bottom:40px">
+    <p class="cl fi" data-d="300">The player <span>never runs out.</span></p>
+    <p class="cl fi" data-d="700">The session <span>never stops.</span></p>
+    <p class="cl fi" data-d="1100">Revenue <span>grows.</span></p>
+  </div>
+  <h1 class="giant fi" data-d="1600">MY KINGDOM 👑</h1>
+  <p class="fi" data-d="2200" style="margin-top:16px;font-size:11px;font-weight:700;color:rgba(255,255,255,.2);letter-spacing:2px;text-transform:uppercase">TeamInIt2WinIt · KingMakers Hackathon 2026</p>
+</div>
+`;
+
+export default function SubmissionDeckScreen() {
+  useEffect(() => {
+    const prevBg = document.body.style.background;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.background = "#0D0D0D";
+    document.body.style.overflow = "hidden";
+
+    const style = document.createElement("style");
+    style.id = "deck-styles";
+    style.textContent = DECK_CSS;
+    document.head.appendChild(style);
+
+    const APP = window.location.origin;
+
+    const IFRAME_SRCS: Record<number, string> = {
+      2: `${APP}/#/`,
+      3: `${APP}/#/onboarding?step=0`,
+      4: `${APP}/#/home?demo=themes`,
+      5: `${APP}/#/onboarding?step=3`,
+      6: `${APP}/#/home?demo=vault`,
+      7: `${APP}/#/topup/confirm?amount=180`,
+    };
+
+    const IFRAME_IDS: Record<number, string> = {
+      2: "iframe-before",
+      3: "iframe-games",
+      4: "iframe-themes",
+      5: "iframe-vault-setup",
+      6: "iframe-home",
+      7: "iframe-topup",
+    };
+
+    const T = [5000, 8000, 12000, 15000, 18000, 15000, 18000, 15000, 12000, 11000, 9000];
+    const TOTAL = T.reduce((a, b) => a + b, 0);
+
+    const deck = document.getElementById("deck")!;
+    const slides = [...deck.querySelectorAll<HTMLElement>(".slide")];
+    let cur = 0;
+    let elapsed = 0;
+    let advTimer: ReturnType<typeof setTimeout> | null = null;
+    const loadedIframes = new Set<number>();
+
+    function showSlide(i: number) {
+      slides.forEach((s, j) => s.classList.toggle("active", j === i));
+      const ctr = document.getElementById("ctr");
+      if (ctr) ctr.textContent = `${i + 1} / ${slides.length}`;
+
+      slides[i].querySelectorAll<HTMLElement>(".fi").forEach((el) => {
+        el.classList.remove("v");
+        const d = parseInt(el.dataset.d ?? "0");
+        setTimeout(() => el.classList.add("v"), d + 60);
+      });
+
+      if (IFRAME_SRCS[i] && !loadedIframes.has(i)) {
+        const iframe = document.getElementById(IFRAME_IDS[i]) as HTMLIFrameElement | null;
+        if (iframe) { iframe.src = IFRAME_SRCS[i]; loadedIframes.add(i); }
+      }
+    }
+
+    function preload(i: number) {
+      const next = i + 1;
+      if (IFRAME_SRCS[next] && !loadedIframes.has(next)) {
+        const iframe = document.getElementById(IFRAME_IDS[next]) as HTMLIFrameElement | null;
+        if (iframe) { iframe.src = IFRAME_SRCS[next]; loadedIframes.add(next); }
+      }
+    }
+
+    function advance() {
+      elapsed += T[cur];
+      const prog = document.getElementById("prog");
+      if (prog) prog.style.width = (elapsed / TOTAL * 100) + "%";
+      if (cur < slides.length - 1) {
+        cur++;
+        showSlide(cur);
+        advTimer = setTimeout(advance, T[cur]);
+      }
+    }
+
+    function handleDeckClick(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (target.closest("iframe") || target.closest(".phone-shell")) return;
+      if (advTimer) clearTimeout(advTimer);
+      elapsed += T[cur];
+      const prog = document.getElementById("prog");
+      if (prog) prog.style.width = (elapsed / TOTAL * 100) + "%";
+      if (cur < slides.length - 1) {
+        cur++;
+        showSlide(cur);
+        advTimer = setTimeout(advance, T[cur]);
+      }
+    }
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "ArrowRight" || e.key === " ") {
+        e.preventDefault();
+        if (advTimer) clearTimeout(advTimer);
+        elapsed += T[cur];
+        const prog = document.getElementById("prog");
+        if (prog) prog.style.width = (elapsed / TOTAL * 100) + "%";
+        if (cur < slides.length - 1) {
+          cur++;
+          showSlide(cur);
+          advTimer = setTimeout(advance, T[cur]);
+        }
+      } else if (e.key === "ArrowLeft" && cur > 0) {
+        e.preventDefault();
+        if (advTimer) clearTimeout(advTimer);
+        cur--;
+        showSlide(cur);
+        advTimer = setTimeout(advance, T[cur]);
+      }
+    }
+
+    deck.addEventListener("click", handleDeckClick);
+    document.addEventListener("keydown", handleKeyDown);
+
+    showSlide(0);
+    advTimer = setTimeout(advance, T[0]);
+    setTimeout(() => preload(1), 2000);
+
+    return () => {
+      if (advTimer) clearTimeout(advTimer);
+      deck.removeEventListener("click", handleDeckClick);
+      document.removeEventListener("keydown", handleKeyDown);
+      document.getElementById("deck-styles")?.remove();
+      document.body.style.background = prevBg;
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
+
+  return (
+    <div
+      id="deck"
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "#0D0D0D",
+        color: "#fff",
+        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif",
+      }}
+      dangerouslySetInnerHTML={{ __html: DECK_HTML }}
+    />
+  );
+}
