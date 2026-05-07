@@ -12,6 +12,7 @@ import KingdomHomeScreen from "../screens/KingdomHomeScreen";
 import OnboardingFlow from "./OnboardingFlow";
 import TopUpConfirmScreen from "../screens/topup/TopUpConfirmScreen";
 import TopUpSuccessScreen from "../screens/topup/TopUpSuccessScreen";
+import SubmissionDeckScreen from "../screens/SubmissionDeckScreen";
 import Toast from "../components/Toast";
 
 // Injects theme CSS variables at the root so every var(--brand) etc. across
@@ -49,6 +50,9 @@ function Routes_() {
       {/* Top-up flow (Tier 2) */}
       <Route path="/topup/confirm" element={<TopUpConfirmScreen />} />
       <Route path="/topup/success" element={<TopUpSuccessScreen />} />
+
+      {/* Submission deck */}
+      <Route path="/submission-deck" element={<SubmissionDeckScreen />} />
 
       {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" replace />} />
